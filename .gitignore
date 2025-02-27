@@ -1,0 +1,33 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build directories
+/dist/
+/build/
+
+/.env         # Environment variables file (make sure not to commit sensitive data)
+*.env         # Ignore any `.env` files
+
+# Optional: ignore package lock files if you're using Yarn or want to ignore specific versions
+package-lock.json
+yarn.lock
+
+# IDE or Editor folders
+.vscode/
+.idea/
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp

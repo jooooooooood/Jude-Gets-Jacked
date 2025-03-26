@@ -1,51 +1,87 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";  // Import useNavigate
+import { useNavigate, useLocation } from "react-router-dom";
 
-function LoginPage() {
+function LoginPage({ setUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();  // Initialize useNavigate
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the redirect path if user was trying to access a protected route
+  const from = location.state?.from?.pathname || "/workouts";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!username || !password) {
+      setError("Username and password are required");
+      return;
+    }
+    
     try {
+      setLoading(true);
+      setError("");
+      
       const response = await axios.post("http://localhost:5000/api/auth/login", {
-        username: username,
-        password: password,
+        username,
+        password,
       });
       
-      // Assuming you store the user data after successful login
       if (response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));  // Store user data in localStorage
-
-        // Redirect to the Workout Log page after successful login
-        navigate("/workouts");  // Use navigate to route to /workouts
+        // Save user in localStorage for persistence
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        
+        // Update App state
+        setUser(response.data.user);
+        
+        // Redirect to the workout log page or the page they were trying to access
+        navigate(from, { replace: true });
       }
-    } catch (error) {
-      console.error("Login failed", error.response.data);
+    } catch (err) {
+      console.error("Login failed", err);
+      setError(err.response?.data?.error || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="login-container">
+      <h1>Log In</h1>
+      
+      {error && <div className="error-message">{error}</div>}
+      
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={loading}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            required
+          />
+        </div>
+        <button 
+          type="submit" 
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Log In"}
+        </button>
       </form>
     </div>
   );
